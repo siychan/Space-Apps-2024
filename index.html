@@ -3,40 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solar System Orrery</title>
+  <title>Interactive Orrery with Planets and Comets</title>
   <style>
     body {
-      text-align: center;
       margin: 0;
+      text-align: center;
       background-color: black;
       color: white;
+      font-family: Arial, sans-serif;
     }
     canvas {
-      border: 1px solid #ccc;
-      background-color: black;
       display: block;
-      margin: 0 auto;
+      margin: 20px auto;
+      background-color: black;
+      border: 2px solid #333;
     }
-    .toggle-container {
-      margin: 10px;
-    }
-    .toggle-button {
-      cursor: pointer;
-      background-color: #333;
-      border: 1px solid #ccc;
-      padding: 10px 20px;
+    .controls {
+      margin: 20px auto;
+      text-align: center;
       color: white;
-      font-size: 16px;
-      margin-bottom: 20px;
+    }
+    .controls input[type="range"] {
+      width: 300px;
+    }
+    .switch {
+      display: inline-block;
+      margin: 0 20px;
+    }
+    .info {
+      position: absolute;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      display: none;
+      pointer-events: none;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>Solar System Orrery</h1>
-  <div class="toggle-container">
-    <button class="toggle-button" id="toggleView">Switch to Comets</button>
+  <h1>Interactive Orrery: Planets & Comets</h1>
+  <p>Hover over planets or comets for details. Use the switch to toggle between planets and comets.</p>
+
+  <!-- Switch between planets and comets -->
+  <div class="controls">
+    <label for="objectSwitch">Show:</label>
+    <label class="switch">
+      <input type="radio" name="celestialType" id="showPlanets" checked> Planets
+    </label>
+    <label class="switch">
+      <input type="radio" name="celestialType" id="showComets"> Comets
+    </label>
+
+    <!-- Speed control slider -->
+    <label for="speedRange">Speed Control:</label>
+    <input type="range" id="speedRange" min="0.1" max="10" value="1" step="0.1">
   </div>
+
   <canvas id="orreryCanvas" width="1000" height="1000"></canvas>
-  <script src="orrery1.js"></script>
+  <div class="info" id="infoBox"></div>
+  
+  <script src="app.js"></script>
 </body>
 </html>
