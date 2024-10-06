@@ -1,25 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orrery - Solar System Model</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System Orrery</title>
+  <style>
+    body {
+      text-align: center;
+      margin: 0;
+      background-color: black;
+      color: white;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      background-color: black;
+      display: block;
+      margin: 0 auto;
+    }
+    .toggle-container {
+      margin: 10px;
+    }
+    .toggle-button {
+      cursor: pointer;
+      background-color: #333;
+      border: 1px solid #ccc;
+      padding: 10px 20px;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Interactive Orrery</h1>
-    <p>Explore the solar system and learn about celestial bodies.</p>
-    <canvas id="orreryCanvas"></canvas>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="app.js"></script>
+  <h1>Solar System Orrery</h1>
+  <div class="toggle-container">
+    <button class="toggle-button" id="toggleView">Switch to Comets</button>
+  </div>
+  <canvas id="orreryCanvas" width="1000" height="1000"></canvas>
+  <script src="app.js"></script>
 </body>
 </html>
