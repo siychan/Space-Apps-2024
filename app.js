@@ -1,122 +1,88 @@
-// Setup the scene, camera, and renderer
+// Set up Scene, Camera, Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Add ambient and directional light
-const ambientLight = new THREE.AmbientLight(0x404040, 1);  // Soft white light
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(5, 10, 7.5).normalize();
-scene.add(directionalLight);
+// Lighting
+const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
+pointLight.position.set(0, 0, 0);  // Light at the sun's position
+scene.add(pointLight);
 
-// Create the Sun
-const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
+const ambientLight = new THREE.AmbientLight(0x404040);  // Ambient light for better visibility
+scene.add(ambientLight);
+
+// Orbit controls (for interaction)
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.25;
+controls.enableZoom = true;
+
+// Create the Sun (yellow)
+const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
 const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 scene.add(sun);
 
-// Define planets and comets data
+// Planets (size, distance from sun, color)
 const planets = [
-  { name: 'Mercury', a: 2, b: 1.5, radius: 0.1, color: 0xaaaaaa, period: 88 },
-  { name: 'Venus', a: 3, b: 2.5, radius: 0.15, color: 0xffcc00, period: 225 },
-  { name: 'Earth', a: 4, b: 3, radius: 0.15, color: 0x0000ff, period: 365 },
-  { name: 'Mars', a: 5, b: 4, radius: 0.1, color: 0xff0000, period: 687 },
-  { name: 'Jupiter', a: 7, b: 5.5, radius: 0.3, color: 0xffa500, period: 4333 },
-  { name: 'Saturn', a: 9, b: 6, radius: 0.25, color: 0xcd853f, period: 10759 },
-  { name: 'Uranus', a: 11, b: 7, radius: 0.2, color: 0x87cefa, period: 30688 },
-  { name: 'Neptune', a: 13, b: 7.5, radius: 0.2, color: 0x00008b, period: 60182 }
+    { name: 'Mercury', radius: 0.5, distance: 10, color: 0xaaaaaa, speed: 0.04 },
+    { name: 'Venus', radius: 0.9, distance: 15, color: 0xffcc00, speed: 0.03 },
+    { name: 'Earth', radius: 1, distance: 20, color: 0x0000ff, speed: 0.02 },
+    { name: 'Mars', radius: 0.8, distance: 25, color: 0xff3300, speed: 0.018 },
+    { name: 'Jupiter', radius: 2, distance: 35, color: 0xff8800, speed: 0.01 },
+    { name: 'Saturn', radius: 1.7, distance: 45, color: 0xffdd99, speed: 0.008 },
+    { name: 'Uranus', radius: 1.4, distance: 55, color: 0x00ffff, speed: 0.006 },
+    { name: 'Neptune', radius: 1.4, distance: 65, color: 0x0000ff, speed: 0.005 }
 ];
 
-const comets = [
-  { name: 'Halley', a: 18.4, b: 8.7, radius: 0.05, color: 0xffffff, period: 75 },
-  { name: 'Encke', a: 2.2, b: 1.8, radius: 0.03, color: 0xcccccc, period: 3.3 },
-  { name: 'Hale-Bopp', a: 186, b: 166, radius: 0.05, color: 0xc0c0c0, period: 2533 },
-  { name: 'Hyakutake', a: 53, b: 50, radius: 0.03, color: 0xffcc00, period: 17000 },
-  { name: 'Tempel 1', a: 3.1, b: 2.9, radius: 0.03, color: 0xffffff, period: 5.5 },
-  { name: 'Borrelly', a: 3.5, b: 2.9, radius: 0.03, color: 0xaaaaaa, period: 6.9 },
-  { name: 'Wild 2', a: 4.8, b: 4.7, radius: 0.02, color: 0xffffff, period: 6.4 },
-  { name: 'Swift-Tuttle', a: 26.1, b: 25.9, radius: 0.05, color: 0xffcc00, period: 133 },
-  { name: 'West', a: 20.3, b: 18.1, radius: 0.03, color: 0xaaaaaa, period: 558 },
-  { name: 'Lovejoy', a: 100, b: 85, radius: 0.05, color: 0x87cefa, period: 600 }
-];
+// Create planets and their orbits
+let planetMeshes = [];
+let angles = planets.map(() => 0);  // Start angles for each planet's orbit
 
-// Store celestial objects in an array
-let celestialObjects = [];
-let speedMultiplier = 1;
-let isShowingPlanets = true;
-
-// Create planet/comet meshes and add to the scene
-function createCelestialObjects() {
-  celestialObjects.forEach(obj => scene.remove(obj)); // Remove old objects
-  celestialObjects = [];
-
-  const selectedObjects = isShowingPlanets ? planets : comets;
-
-  selectedObjects.forEach(obj => {
-    const geometry = new THREE.SphereGeometry(obj.radius, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: obj.color });
-    const celestialMesh = new THREE.Mesh(geometry, material);
+planets.forEach((planet, index) => {
+    // Create planet geometry
+    const planetGeometry = new THREE.SphereGeometry(planet.radius, 32, 32);
+    const planetMaterial = new THREE.MeshStandardMaterial({ color: planet.color });
+    const planetMesh = new THREE.Mesh(planetGeometry, planetMaterial);
     
-    celestialMesh.userData = { ...obj }; // Store original data
-    scene.add(celestialMesh);
-    celestialObjects.push(celestialMesh);
-  });
-}
+    // Position planets along their orbits (initial positions)
+    planetMesh.position.x = planet.distance;
+    scene.add(planetMesh);
+    planetMeshes.push(planetMesh);
 
-// Calculate the position of celestial objects
-function updatePositions() {
-  celestialObjects.forEach((obj, index) => {
-    const data = obj.userData;
-    const time = (Date.now() / 1000) / data.period * speedMultiplier; // Time factor
-    const angle = time * 2 * Math.PI;
-
-    const x = Math.cos(angle) * data.a; // Elliptical orbit calculation
-    const z = Math.sin(angle) * data.b; // Elliptical orbit calculation
-    obj.position.set(x, 0, z); // Set position
-  });
-}
-
-// Handle input changes for speed and celestial selection
-document.getElementById('speedRange').addEventListener('input', function () {
-  speedMultiplier = this.value;
+    // Draw orbit path (for visualization)
+    const orbitGeometry = new THREE.RingGeometry(planet.distance - 0.05, planet.distance + 0.05, 64);
+    const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+    orbit.rotation.x = Math.PI / 2;  // Align orbit horizontally
+    scene.add(orbit);
 });
 
-document.querySelectorAll('input[name="viewType"]').forEach(input => {
-  input.addEventListener('change', function () {
-    isShowingPlanets = document.getElementById('viewPlanets').checked;
-    createCelestialObjects();
-  });
-});
+// Set camera position
+camera.position.z = 100;
 
-// Adjust camera position based on the angle slider
-document.getElementById('angleRange').addEventListener('input', function () {
-  const angle = THREE.MathUtils.degToRad(this.value); // Convert to radians
-  camera.position.y = 20 * Math.sin(angle); // Change height based on angle
-  camera.position.z = 20 * Math.cos(angle); // Change depth based on angle
-  camera.lookAt(0, 0, 0); // Look at the center
-});
-
-// Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-  updatePositions(); // Update positions each frame
-  renderer.render(scene, camera); // Render the scene
-}
-
-// Set initial camera position
-camera.position.set(0, 10, 20);
-camera.lookAt(0, 0, 0);
-
-// Initial celestial object creation
-createCelestialObjects();
-animate(); // Start the animation loop
-
-// Handle window resize
+// Adjust for screen resizing
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
 });
+
+// Animation loop for rendering and updating planet orbits
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Update each planet's position in orbit
+    planets.forEach((planet, index) => {
+        angles[index] += planet.speed;  // Increment orbit angle
+        planetMeshes[index].position.x = planet.distance * Math.cos(angles[index]);
+        planetMeshes[index].position.z = planet.distance * Math.sin(angles[index]);
+        planetMeshes[index].rotation.y += 0.01;  // Rotate planet on its axis
+    });
+
+    controls.update();  // Smooth camera movement
+    renderer.render(scene, camera);  // Render the scene
+}
+animate();
