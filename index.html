@@ -1,51 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Interactive Orrery</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    canvas {
-      display: block;
-    }
-    .controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px;
-      border-radius: 8px;
-      z-index: 1;
-    }
-    .controls label {
-      margin-right: 15px;
-    }
-    input[type="range"] {
-      width: 200px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Interactive Orrery - Solar System (No Textures)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
-  <div class="controls">
-    <label><input type="radio" name="viewType" id="viewPlanets" checked> Planets</label>
-    <label><input type="radio" name="viewType" id="viewComets"> Comets</label>
-    <label><input type="radio" name="viewType" id="viewBoth"> Both</label>
-    <br><br>
-    <label for="speedRange">Speed:</label>
-    <input type="range" id="speedRange" min="0.1" max="10" value="1" step="0.1">
-    <br><br>
-    <label for="angleRange">View Angle:</label>
-    <input type="range" id="angleRange" min="-90" max="90" value="0" step="1">
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="app.js"></script>
+    <!-- Include Three.js and OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
