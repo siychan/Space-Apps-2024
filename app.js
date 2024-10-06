@@ -96,26 +96,21 @@ document.getElementById('angleRange').addEventListener('input', function () {
   const angle = THREE.MathUtils.degToRad(this.value); // Convert to radians
   camera.position.y = 20 * Math.sin(angle); // Change height based on angle
   camera.position.z = 20 * Math.cos(angle); // Change depth based on angle
-  camera.lookAt(0, 0, 0); // Always look at the center
-});
-
-// Handle zoom range input
-document.getElementById('zoomRange').addEventListener('input', function () {
-  camera.position.set(0, 20, this.value); // Change the zoom based on the slider value
+  camera.lookAt(0, 0, 0); // Look at the center
 });
 
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
-  updatePositions();
-  renderer.render(scene, camera);
+  updatePositions(); // Update positions each frame
+  renderer.render(scene, camera); // Render the scene
 }
 
-// Initial camera position
+// Set initial camera position
 camera.position.set(0, 10, 20);
 camera.lookAt(0, 0, 0);
 
-// Create celestial objects initially
+// Initial celestial object creation
 createCelestialObjects();
 animate(); // Start the animation loop
 
