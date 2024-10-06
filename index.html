@@ -3,66 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Orrery with Planets and Comets</title>
+  <title>3D Interactive Orrery</title>
   <style>
     body {
       margin: 0;
-      text-align: center;
-      background-color: black;
+      overflow: hidden;
+      background: black;
       color: white;
       font-family: Arial, sans-serif;
+      text-align: center;
     }
     canvas {
       display: block;
-      margin: 20px auto;
-      background-color: black;
-      border: 2px solid #333;
     }
     .controls {
-      margin: 20px auto;
-      text-align: center;
-      color: white;
-    }
-    .controls input[type="range"] {
-      width: 300px;
-    }
-    .switch {
-      display: inline-block;
-      margin: 0 20px;
-    }
-    .info {
       position: absolute;
-      color: white;
-      background-color: rgba(0, 0, 0, 0.7);
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
       padding: 10px;
-      display: none;
-      pointer-events: none;
-      font-size: 14px;
+      border-radius: 8px;
+      z-index: 1;
+    }
+    .controls label {
+      margin-right: 15px;
+    }
+    input[type="range"] {
+      width: 200px;
     }
   </style>
 </head>
 <body>
-  <h1>Interactive Orrery: Planets & Comets</h1>
-  <p>Hover over planets or comets for details. Use the switch to toggle between planets and comets.</p>
-
-  <!-- Switch between planets and comets -->
   <div class="controls">
-    <label for="objectSwitch">Show:</label>
-    <label class="switch">
-      <input type="radio" name="celestialType" id="showPlanets" checked> Planets
-    </label>
-    <label class="switch">
-      <input type="radio" name="celestialType" id="showComets"> Comets
-    </label>
-
-    <!-- Speed control slider -->
-    <label for="speedRange">Speed Control:</label>
+    <label><input type="radio" name="viewType" id="viewPlanets" checked> Planets</label>
+    <label><input type="radio" name="viewType" id="viewComets"> Comets</label>
+    <label><input type="radio" name="viewType" id="viewBoth"> Both</label>
+    <br><br>
+    <label for="speedRange">Speed:</label>
     <input type="range" id="speedRange" min="0.1" max="10" value="1" step="0.1">
+    <br><br>
+    <label for="angleRange">View Angle:</label>
+    <input type="range" id="angleRange" min="-90" max= "90" value="0" step="1">
+    <br><br>
+    <label for="zoomRange">Zoom:</label>
+    <input type="range" id="zoomRange" min="5" max="100" value="20" step="1">
   </div>
-
-  <canvas id="orreryCanvas" width="1000" height="1000"></canvas>
-  <div class="info" id="infoBox"></div>
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
