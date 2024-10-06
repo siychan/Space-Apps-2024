@@ -1,148 +1,127 @@
-const canvas = document.getElementById('orreryCanvas');
-const ctx = canvas.getContext('2d');
+// Setup the scene, camera, and renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-// Celestial object datasets
-const sun = { x: canvas.width / 2, y: canvas.height / 2, radius: 15 };
+// Add ambient and directional light
+const ambientLight = new THREE.AmbientLight(0x404040, 1);  // Soft white light
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 10, 7.5).normalize();
+scene.add(directionalLight);
 
-// Planets dataset
+// Create the Sun
+const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
+const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+scene.add(sun);
+
+// Define planets and comets data
 const planets = [
-  { name: 'Mercury', a: 39, b: 35, radius: 3, color: 'gray', period: 88 },
-  { name: 'Venus', a: 72, b: 70, radius: 6, color: 'yellow', period: 225 },
-  { name: 'Earth', a: 100, b: 98, radius: 6, color: 'blue', period: 365 },
-  { name: 'Mars', a: 152, b: 149, radius: 4, color: 'red', period: 687 },
-  { name: 'Jupiter', a: 520, b: 516, radius: 10, color: 'orange', period: 4333 },
-  { name: 'Saturn', a: 950, b: 945, radius: 9, color: 'goldenrod', period: 10759 },
-  { name: 'Uranus', a: 1920, b: 1910, radius: 7, color: 'lightblue', period: 30688 },
-  { name: 'Neptune', a: 3000, b: 2980, radius: 7, color: 'darkblue', period: 60182 }
+  { name: 'Mercury', a: 2, b: 1.5, radius: 0.1, color: 0xaaaaaa, period: 88 },
+  { name: 'Venus', a: 3, b: 2.5, radius: 0.15, color: 0xffcc00, period: 225 },
+  { name: 'Earth', a: 4, b: 3, radius: 0.15, color: 0x0000ff, period: 365 },
+  { name: 'Mars', a: 5, b: 4, radius: 0.1, color: 0xff0000, period: 687 },
+  { name: 'Jupiter', a: 7, b: 5.5, radius: 0.3, color: 0xffa500, period: 4333 },
+  { name: 'Saturn', a: 9, b: 6, radius: 0.25, color: 0xcd853f, period: 10759 },
+  { name: 'Uranus', a: 11, b: 7, radius: 0.2, color: 0x87cefa, period: 30688 },
+  { name: 'Neptune', a: 13, b: 7.5, radius: 0.2, color: 0x00008b, period: 60182 }
 ];
 
-// Comets dataset
 const comets = [
-  { name: 'Halley', a: 7600, b: 1900, radius: 4, color: 'white', period: 27450 },
-  { name: 'Hale-Bopp', a: 5700, b: 5500, radius: 4, color: 'cyan', period: 2533 },
-  { name: 'Encke', a: 229, b: 100, radius: 2, color: 'gray', period: 1204 },
-  { name: 'Hyakutake', a: 8000, b: 7200, radius: 3, color: 'lightblue', period: 28300 },
-  { name: 'Tempel 1', a: 350, b: 340, radius: 3, color: 'gray', period: 2048 },
-  { name: 'Borrelly', a: 331, b: 290, radius: 3, color: 'white', period: 2088 },
-  { name: 'Wild 2', a: 415, b: 400, radius: 2, color: 'white', period: 2480 },
-  { name: 'Swift-Tuttle', a: 2600, b: 2550, radius: 4, color: 'orange', period: 26500 },
-  { name: 'West', a: 4700, b: 4600, radius: 3, color: 'white', period: 40000 },
-  { name: 'Lovejoy', a: 8200, b: 7900, radius: 3, color: 'lightgreen', period: 15000 }
+  { name: 'Halley', a: 18.4, b: 8.7, radius: 0.05, color: 0xffffff, period: 75 },
+  { name: 'Encke', a: 2.2, b: 1.8, radius: 0.03, color: 0xcccccc, period: 3.3 },
+  { name: 'Hale-Bopp', a: 186, b: 166, radius: 0.05, color: 0xc0c0c0, period: 2533 },
+  { name: 'Hyakutake', a: 53, b: 50, radius: 0.03, color: 0xffcc00, period: 17000 },
+  { name: 'Tempel 1', a: 3.1, b: 2.9, radius: 0.03, color: 0xffffff, period: 5.5 },
+  { name: 'Borrelly', a: 3.5, b: 2.9, radius: 0.03, color: 0xaaaaaa, period: 6.9 },
+  { name: 'Wild 2', a: 4.8, b: 4.7, radius: 0.02, color: 0xffffff, period: 6.4 },
+  { name: 'Swift-Tuttle', a: 26.1, b: 25.9, radius: 0.05, color: 0xffcc00, period: 133 },
+  { name: 'West', a: 20.3, b: 18.1, radius: 0.03, color: 0xaaaaaa, period: 558 },
+  { name: 'Lovejoy', a: 100, b: 85, radius: 0.05, color: 0x87cefa, period: 600 }
 ];
 
-const scale = 0.1;  // Scale to fit orbits within canvas
-let zoom = 1.0;  // Zoom factor
-let offsetX = 0, offsetY = 0;  // Pan offsets
-let mouseX, mouseY;  // Mouse position for hover interactivity
-let speedMultiplier = 1;  // Speed multiplier controlled by slider
-let isShowingPlanets = true;  // Toggle between planets and comets
+// Store celestial objects in an array
+let celestialObjects = [];
+let speedMultiplier = 1;
+let isShowingPlanets = true;
 
-// Draw the Sun
-function drawSun() {
-  ctx.beginPath();
-  ctx.arc(sun.x + offsetX, sun.y + offsetY, sun.radius, 0, 2 * Math.PI);
-  ctx.fillStyle = 'yellow';
-  ctx.fill();
-}
+// Create planet/comet meshes and add to the scene
+function createCelestialObjects() {
+  celestialObjects.forEach(obj => scene.remove(obj)); // Remove old objects
+  celestialObjects = [];
 
-// Draw celestial objects (planets or comets)
-function drawObjects(objects) {
-  const time = Date.now() / 1000;  // Get current time
+  const selectedObjects = isShowingPlanets ? planets : comets;
 
-  objects.forEach(obj => {
-    // Calculate the position of the object in its orbit based on the selected speed
-    const angle = (time / obj.period) * 2 * Math.PI * speedMultiplier;
-    const x = sun.x + obj.a * scale * zoom * Math.cos(angle) + offsetX;
-    const y = sun.y + obj.b * scale * zoom * Math.sin(angle) + offsetY;
-
-    // Draw the elliptical orbit
-    ctx.beginPath();
-    ctx.ellipse(sun.x + offsetX, sun.y + offsetY, obj.a * scale * zoom, obj.b * scale * zoom, 0, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.stroke();
-
-    // Draw the object (planet or comet)
-    ctx.beginPath();
-    ctx.arc(x, y, obj.radius * zoom, 0, 2 * Math.PI);
-    ctx.fillStyle = obj.color;
-    ctx.fill();
-
-    // Show info when the mouse hovers over the object
-    if (Math.hypot(mouseX - x, mouseY - y) < obj.radius * zoom) {
-      showObjectInfo(obj, x, y);
-    }
+  selectedObjects.forEach(obj => {
+    const geometry = new THREE.SphereGeometry(obj.radius, 32, 32);
+    const material = new THREE.MeshBasicMaterial({ color: obj.color });
+    const celestialMesh = new THREE.Mesh(geometry, material);
+    
+    celestialMesh.userData = { ...obj }; // Store original data
+    scene.add(celestialMesh);
+    celestialObjects.push(celestialMesh);
   });
 }
 
-// Show information when hovering over an object
-function showObjectInfo(obj, x, y) {
-  const infoBox = document.getElementById('infoBox');
-  infoBox.style.display = 'block';
-  infoBox.style.left = `${x + 10}px`;
-  infoBox.style.top = `${y - 30}px`;
-  infoBox.innerHTML = `<strong>${obj.name}</strong><br>Orbit: ${obj.a} AU<br>Period: ${obj.period} days`;
+// Calculate the position of celestial objects
+function updatePositions() {
+  celestialObjects.forEach((obj, index) => {
+    const data = obj.userData;
+    const time = (Date.now() / 1000) / data.period * speedMultiplier; // Time factor
+    const angle = time * 2 * Math.PI;
+
+    const x = Math.cos(angle) * data.a; // Elliptical orbit calculation
+    const z = Math.sin(angle) * data.b; // Elliptical orbit calculation
+    obj.position.set(x, 0, z); // Set position
+  });
 }
 
-// Clear canvas and redraw everything
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear canvas
-  drawSun();  // Draw the Sun
+// Handle input changes for speed and celestial selection
+document.getElementById('speedRange').addEventListener('input', function () {
+  speedMultiplier = this.value;
+});
 
-  // Draw planets or comets based on user selection
-  if (isShowingPlanets) {
-    drawObjects(planets);
-  } else {
-    drawObjects(comets);
-  }
+document.querySelectorAll('input[name="viewType"]').forEach(input => {
+  input.addEventListener('change', function () {
+    isShowingPlanets = document.getElementById('viewPlanets').checked;
+    createCelestialObjects();
+  });
+});
 
-  requestAnimationFrame(draw);  // Keep the animation running
+// Adjust camera position based on the angle slider
+document.getElementById('angleRange').addEventListener('input', function () {
+  const angle = THREE.MathUtils.degToRad(this.value); // Convert to radians
+  camera.position.y = 20 * Math.sin(angle); // Change height based on angle
+  camera.position.z = 20 * Math.cos(angle); // Change depth based on angle
+  camera.lookAt(0, 0, 0); // Always look at the center
+});
+
+// Handle zoom range input
+document.getElementById('zoomRange').addEventListener('input', function () {
+  camera.position.set(0, 20, this.value); // Change the zoom based on the slider value
+});
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  updatePositions();
+  renderer.render(scene, camera);
 }
 
-// Handle mouse movement for hover interaction
-canvas.addEventListener('mousemove', event => {
-  const rect = canvas.getBoundingClientRect();
-  mouseX = event.clientX - rect.left;
-  mouseY = event.clientY - rect.top;
-});
+// Initial camera position
+camera.position.set(0, 10, 20);
+camera.lookAt(0, 0, 0);
 
-// Handle zooming with mouse scroll
-canvas.addEventListener('wheel', event => {
-  event.preventDefault();
-  zoom += event.deltaY * -0.001;  // Adjust zoom factor
-  zoom = Math.min(Math.max(0.2, zoom), 3);  // Clamp zoom levels
-});
+// Create celestial objects initially
+createCelestialObjects();
+animate(); // Start the animation loop
 
-// Handle dragging for panning
-let isDragging = false;
-let dragStartX, dragStartY;
-canvas.addEventListener('mousedown', event => {
-  isDragging = true;
-  dragStartX = event.clientX;
-  dragStartY = event.clientY;
+// Handle window resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
-canvas.addEventListener('mouseup', () => isDragging = false);
-canvas.addEventListener('mousemove', event => {
-  if (isDragging) {
-    offsetX += event.clientX - dragStartX;
-    offsetY += event.clientY - dragStartY;
-    dragStartX = event.clientX;
-    dragStartY = event.clientY;
-  }
-});
-
-// Update speed multiplier based on slider value
-const speedRange = document.getElementById('speedRange');
-speedRange.addEventListener('input', () => {
-  speedMultiplier = speedRange.value;  // Update speed based on slider input
-});
-
-// Toggle between planets and comets
-document.getElementById('showPlanets').addEventListener('change', () => {
-  isShowingPlanets = true;
-});
-document.getElementById('showComets').addEventListener('change', () => {
-  isShowingPlanets = false;
-});
-
-// Start the animation loop
-draw();
