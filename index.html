@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Free Website</title>
-    <title>Interactive Orrery</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orrery - Solar System Model</title>
     <style>
-        body { margin: 0; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to My Free Website</h1>
-    <p>This is hosted for free on GitHub Pages.</p>
-    <h1>Interactive Orrery</h1>
-    <p>Explore the solar system and learn about celestial bodies.</p>
-    <canvas id="orreryCanvas"></canvas>
+    <canvas id="solarSystem"></canvas>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="app.js"></script>
 </body>
