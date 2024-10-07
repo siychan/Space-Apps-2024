@@ -172,7 +172,7 @@
             group.add(celestialBody);
 
             // Create label and add it to the group
-            const label = createLabel(data.name);
+            const label = createLabel(data.name + "\n" + data.period.toString() + " years");
             group.add(label);
 
             // Draw and add the orbit line
