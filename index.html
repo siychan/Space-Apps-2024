@@ -64,7 +64,7 @@
     }
 </style>
 
-<div id="instruction">Please use mouse + alt/ctrl/shift + scroll for 3D and zoom control</div>
+<div id="instruction">Please use mouse + alt/ctrl/shift + scroll for 3D and zoom control. Hover over objects for more info.</div>
 
     <div id="controls">
         <div class="toggle" id="togglePlanets">Toggle Planets</div>
@@ -76,11 +76,12 @@
         </div>
     </div>
 
+<div id="tooltip" style="position: absolute; background: rgba(255, 255, 255, 0.8); padding: 5px; border-radius: 5px; display: none;"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/jsm/utils/FontLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/jsm/geometries/TextGeometry.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
     <script>
         let scene, camera, renderer;
         let speedFactor = 1; // Global speed factor for controlling simulation speed
@@ -119,6 +120,10 @@
 
         let font;
 
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('tooltip');
+
         function init() {
             // Create the scene
             scene = new THREE.Scene();
@@ -154,7 +159,31 @@
                 speedFactor = parseFloat(event.target.value); // Update speed factor
                 document.getElementById('speedValue').textContent = speedFactor + 'x'; // Update speed display
             });
+
+        // Add mouse move event listener
+        window.addEventListener('mousemove', onMouseMove, false);
         }
+
+    function onMouseMove(event) {
+        // Convert mouse coordinates to normalized device coordinates (-1 to +1)
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Calculate objects intersecting the picking ray
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(planetGroups.concat(dwarfPlanetGroups).concat(cometGroups).map(group => group.children[0]));
+
+        if (intersects.length > 0) {
+            const object = intersects[0].object;
+//            tooltip.innerHTML = `${object.userData.name}<br>Period: ${object.userData.period} years`;
+            tooltip.innerHTML = `Eccentricity: ${object.userData.eccentricity}<br>Inclination: ${object.userData.inclinationD} degrees`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${event.clientX + 10}px`;
+            tooltip.style.top = `${event.clientY + 10}px`;
+        } else {
+            tooltip.style.display = 'none'; // Hide tooltip if not hovering over any object
+        }
+    }
 
         function createCelestialBodies() {
             // Create celestial bodies for planets, dwarf planets, and comets
@@ -196,6 +225,7 @@
                 angle: Math.random() * 2 * Math.PI,
                 inclination: THREE.MathUtils.degToRad(data.inclination),
                 argumentOfPeriapsis: THREE.MathUtils.degToRad(data.argumentOfPeriapsis),
+                inclinationD: data.inclination,
             };
 
             return celestialBody;
